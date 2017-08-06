@@ -32,4 +32,15 @@ public interface QueueService {
 
     public void deleteQueue(@Nonnull String name);
 
+    /*
+    //TODO //FIXME
+
+      1. multi-tread testing
+      2. file based implementation
+      3. amazon based implementation
+      3.1. read about amazon queue
+      3.2. register to amazon sqs
+      3.3. mock amazon sqs
+
+     */
 }
