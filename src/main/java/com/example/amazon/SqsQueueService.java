@@ -1,6 +1,8 @@
-package com.example;
+package com.example.amazon;
 
 import com.amazonaws.services.sqs.AmazonSQSClient;
+import com.example.queue.Message;
+import com.example.queue.QueueService;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;

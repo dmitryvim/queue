@@ -1,4 +1,7 @@
-package com.example;
+package com.example.file;
+
+import com.example.queue.Message;
+import com.example.queue.QueueService;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;

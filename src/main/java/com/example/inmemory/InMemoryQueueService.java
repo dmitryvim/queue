@@ -1,5 +1,7 @@
-package com.example;
+package com.example.inmemory;
 
+import com.example.queue.Message;
+import com.example.queue.QueueService;
 import com.google.common.base.Throwables;
 
 import javax.annotation.CheckForNull;
@@ -53,7 +55,7 @@ public class InMemoryQueueService implements QueueService {
 
     @Override
     public void createQueue(@Nonnull String name) {
-        this.queues.put(name, new ArrayBlockingQueue<Message>(QUEUE_SIZE));
+        this.queues.put(name, new ArrayBlockingQueue<>(QUEUE_SIZE));
     }
 
     @Override

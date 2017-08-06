@@ -1,4 +1,4 @@
-package com.example;
+package com.example.queue;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -21,16 +21,16 @@ public interface QueueService {
     //   deletes a message from the queue that was received by pull().
     //
 
-    public void push(@Nonnull String queueName, @Nonnull Message message);
+    void push(@Nonnull String queueName, @Nonnull Message message);
 
     @CheckForNull
-    public Message pull(@Nonnull String queueName);
+    Message pull(@Nonnull String queueName);
 
-    public void delete(@Nonnull String queueName, @Nonnull Message message);
+    void delete(@Nonnull String queueName, @Nonnull Message message);
 
-    public void createQueue(@Nonnull String name);
+    void createQueue(@Nonnull String name);
 
-    public void deleteQueue(@Nonnull String name);
+    void deleteQueue(@Nonnull String name);
 
     /*
     //TODO //FIXME
