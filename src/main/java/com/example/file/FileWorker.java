@@ -1,6 +1,8 @@
 package com.example.file;
 
 import java.io.*;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,8 +22,17 @@ public class FileWorker {
 
     public String readFirstLine() {
         if (this.file.exists()) {
-            try (BufferedReader reader = new BufferedReader(new FileReader(this.file))) {
-                return reader.readLine();
+            try (FileInputStream inputStream = new FileInputStream(this.file)) {
+                FileChannel channel = inputStream.getChannel();
+                try (FileLock lock = channel.tryLock()) {
+                    if (lock != null) {
+                        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+                            return reader.readLine();
+                        }
+                    } else {
+                        throw new IllegalStateException("You know nothing, Jonh Snow");
+                    }
+                }
             } catch (FileNotFoundException e) {
                 //hope it is unable to occur cuzz of chech if file exists
                 throw new IllegalStateException("Unable to find file");
