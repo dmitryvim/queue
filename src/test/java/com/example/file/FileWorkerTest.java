@@ -62,7 +62,10 @@ public class FileWorkerTest {
 
         // then
         List<String> lines = fileLines();
+        lines.forEach(System.out::println);
+        assertEquals(2, lines.size());
         assertEquals("second", lines.get(0));
+        assertEquals("third", lines.get(1));
     }
 
     private void fillFile(String... lines) throws Exception {

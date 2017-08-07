@@ -1,10 +1,12 @@
 package com.example.file;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author dmitry.mikhaylovich@bostongene.com
@@ -14,6 +16,12 @@ public class FileWorker {
 
     private final static String LINE_SEPARATOR = System.getProperty("line.separator");
 
+    private final static int ACCESS_FILE_RETRY_COUNT = 10;
+
+    private final static int ACCESS_FILE_TIMEOUT = 100;
+
+    private final static int BYTE_BUFFER_SIZE = 255;
+
     private final File file;
 
     public FileWorker(File file) {
@@ -22,70 +30,80 @@ public class FileWorker {
 
     public String readFirstLine() {
         if (this.file.exists()) {
-            try (FileInputStream inputStream = new FileInputStream(this.file)) {
-                FileChannel channel = inputStream.getChannel();
-                try (FileLock lock = channel.tryLock()) {
-                    if (lock != null) {
-                        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-                            return reader.readLine();
-                        }
-                    } else {
-                        throw new IllegalStateException("You know nothing, Jonh Snow");
-                    }
-                }
-            } catch (FileNotFoundException e) {
-                //hope it is unable to occur cuzz of chech if file exists
-                throw new IllegalStateException("Unable to find file");
-            } catch (IOException e) {
-                throw new IllegalStateException("Unable to read file");
-            }
+            return runWorkerOnRandomAccessFile(RandomAccessFile::readLine);
         } else {
             return null;
         }
     }
 
     public void writeLine(String line) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(this.file, true))) {
-            writer.append(line).append(LINE_SEPARATOR);
-        } catch (IOException e) {
-            throw new IllegalStateException("Unable to read file");
-        }
-
+        runWorkerOnRandomAccessFile(randomAccessFile -> {
+            long size = randomAccessFile.length();
+            randomAccessFile.seek(size);
+            randomAccessFile.writeBytes(line + LINE_SEPARATOR);
+            return null;
+        });
     }
 
     public void removeFirstLine(String firstLine) {
         // depends on queue size there are two ways to solve this problem: for large queues it is better to use temp file
 
         if (this.file.exists()) {
-            List<String> lines = null;
-
-            //read content without first line to lines
-            try (BufferedReader reader = new BufferedReader(new FileReader(this.file))) {
-                String readLine = reader.readLine();
-                if (readLine.equals(firstLine)) {
-                    lines = reader.lines().collect(Collectors.toList());
+            runWorkerOnRandomAccessFile(randomAccessFile -> {
+                String line = randomAccessFile.readLine();
+                if (Objects.equals(line, firstLine)) {
+                    long writePointer = 0;
+                    long readPointer = randomAccessFile.getFilePointer();
+                    byte buffer[] = new byte[BYTE_BUFFER_SIZE];
+                    int read;
+                    while ((read = randomAccessFile.read(buffer)) > 0) {
+                        readPointer += read;
+                        randomAccessFile.seek(writePointer);
+                        randomAccessFile.write(buffer, 0, read);
+                        writePointer += read;
+                        randomAccessFile.seek(readPointer);
+                    }
+                    randomAccessFile.setLength(writePointer);
                 }
-            } catch (FileNotFoundException e) {
-                //hope it is unable to occur because of check if file exists
-                throw new IllegalStateException("Unable to find file");
-            } catch (IOException e) {
-                throw new IllegalStateException("Unable to read file");
-            }
-
-            //write line back to file
-            if (lines != null && !lines.isEmpty()) {
-                try (BufferedWriter writer = new BufferedWriter(new FileWriter(this.file))) {
-                    lines.forEach(line -> {
-                        try {
-                            writer.append(line).append(LINE_SEPARATOR);
-                        } catch (IOException e) {
-                            throw new IllegalStateException("Unable to write file");
-                        }
-                    });
-                } catch (IOException e) {
-                    throw new IllegalStateException("Unable to access file");
-                }
-            }
+                return null;
+            });
         }
+    }
+
+    private String runWorkerOnRandomAccessFile(RandomAccessFileWorker worker) {
+        return runWorkerOnRandomAccessFile(worker, ACCESS_FILE_RETRY_COUNT, ACCESS_FILE_TIMEOUT);
+    }
+
+    private String runWorkerOnRandomAccessFile(RandomAccessFileWorker worker, int retryCount, int timeout) {
+        try (RandomAccessFile randomAccessFile = new RandomAccessFile(this.file, "rw")) {
+            FileChannel channel = randomAccessFile.getChannel();
+            FileLock lock = null;
+            try {
+                lock = channel.tryLock();
+                while (lock == null && --retryCount > 0) {
+                    TimeUnit.MILLISECONDS.sleep(timeout);
+                    lock = channel.tryLock();
+                }
+                if (lock == null) {
+                    throw new IllegalStateException("Unable to get access to file");
+                } else {
+                    return worker.work(randomAccessFile);
+                }
+            } finally {
+                if (lock != null) {
+                    lock.close();
+                }
+            }
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable to work with file.", e);
+        } catch (InterruptedException e) {
+            // really, here I need more complicated mechanism, but not for test task
+            throw new IllegalStateException("Interrupted exception occurred", e);
+        }
+    }
+
+    @FunctionalInterface
+    private interface RandomAccessFileWorker {
+        String work(RandomAccessFile file) throws IOException;
     }
 }
