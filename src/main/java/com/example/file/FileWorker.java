@@ -10,6 +10,8 @@ import java.util.stream.Collectors;
 //TODO add tests to fileworker
 public class FileWorker {
 
+    private final static String LINE_SEPARATOR = System.getProperty("line.separator");
+
     private final File file;
 
     public FileWorker(File file) {
@@ -33,7 +35,7 @@ public class FileWorker {
 
     public void writeLine(String line) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(this.file, true))) {
-            writer.append(line).append("%n");
+            writer.append(line).append(LINE_SEPARATOR);
         } catch (IOException e) {
             throw new IllegalStateException("Unable to read file");
         }
@@ -64,7 +66,7 @@ public class FileWorker {
                 try (BufferedWriter writer = new BufferedWriter(new FileWriter(this.file))) {
                     lines.forEach(line -> {
                         try {
-                            writer.append(line).append("%n");
+                            writer.append(line).append(LINE_SEPARATOR);
                         } catch (IOException e) {
                             throw new IllegalStateException("Unable to write file");
                         }
