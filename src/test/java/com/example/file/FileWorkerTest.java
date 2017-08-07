@@ -5,6 +5,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.*;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,7 +35,7 @@ public class FileWorkerTest {
     }
 
     @Test
-    public void readFirstLine() throws Exception {
+    public void shouldReadFirstLine() throws Exception {
         // when
         String firstLine = this.fileWorker.readFirstLine();
 
@@ -42,7 +44,7 @@ public class FileWorkerTest {
     }
 
     @Test
-    public void writeLine() throws Exception {
+    public void shouldWriteNewLine() throws Exception {
         // given
         String line = "new line";
 
@@ -55,7 +57,7 @@ public class FileWorkerTest {
     }
 
     @Test
-    public void removeFirstLine() throws Exception {
+    public void shouldRemoveFirstLine() throws Exception {
         // when
         String firstLine = this.fileWorker.readFirstLine();
         this.fileWorker.removeFirstLine(firstLine);
@@ -66,6 +68,14 @@ public class FileWorkerTest {
         assertEquals(2, lines.size());
         assertEquals("second", lines.get(0));
         assertEquals("third", lines.get(1));
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldThrowExceptionCauseOfLockedFile() throws Exception {
+        FileChannel channel = FileChannel.open(this.file.toPath());
+        try (FileLock lock = channel.tryLock()) {
+            this.fileWorker.readFirstLine();
+        }
     }
 
     private void fillFile(String... lines) throws Exception {
