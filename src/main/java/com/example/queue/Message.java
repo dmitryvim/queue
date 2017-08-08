@@ -6,6 +6,8 @@ import javax.annotation.Nonnull;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -19,6 +21,8 @@ public class Message {
 
     private final String id;
 
+    private Map<String, String> attributes;
+
     //TODO equals for message delete
 
     public Message(@Nonnull String id, @Nonnull String message, @Nonnull LocalDateTime timestamp) {
@@ -28,6 +32,22 @@ public class Message {
         this.id = id;
         this.message = message;
         this.timestamp = timestamp;
+    }
+
+    // added only for amazon sqs implementation
+    public Message withAttribute(@Nonnull String name, @Nonnull String value) {
+        Validate.notEmpty(name, "name is required");
+        Validate.notEmpty(value, "value is required");
+        if (this.attributes == null) {
+            this.attributes = new HashMap<>();
+        }
+        this.attributes.put(name, value);
+        return this;
+    }
+
+    public String getAttribute(@Nonnull String name) {
+        Validate.notEmpty(name, "name is required");
+        return (this.attributes == null) ? null : this.attributes.get(name);
     }
 
     public Message(@Nonnull String message) {
@@ -42,6 +62,7 @@ public class Message {
         //TODO encode decode message
         return new Message(strings[0], strings[2], time);
     }
+
 
     public String line() {
         //TODO encode decode message
