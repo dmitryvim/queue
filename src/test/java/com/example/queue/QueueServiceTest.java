@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -56,13 +57,14 @@ public class QueueServiceTest {
     }
 
     @Test
-    public void shouldReturnTheSameMessageOnRepeatedPull() {
+    public void shouldReturnTheSameMessageOnRepeatedPull() throws Exception {
         // given
         String queueName = randomeQueueName();
         Arrays.asList(message("first"), message("second")).forEach(message -> this.queueService.push(queueName, message));
 
         // expect
         Message firstMessage1 = this.queueService.pull(queueName);
+        TimeUnit.SECONDS.sleep(2);
         Message firstMessage2 = this.queueService.pull(queueName);
         assertEquals(firstMessage1, firstMessage2);
     }

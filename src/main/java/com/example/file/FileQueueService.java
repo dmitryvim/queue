@@ -23,7 +23,7 @@ public class FileQueueService implements QueueService {
     public void push(@Nonnull String queueName, @Nonnull Message message) {
         Validate.notNull(message, "message is required");
         MessageWrapper wrapper = new MessageWrapper(message);
-        fileWorker(queueName).writeLine(wrapper.line());
+        fileWorker(queueName).writeLine(wrapper.toString());
     }
 
     @CheckForNull
@@ -36,7 +36,7 @@ public class FileQueueService implements QueueService {
     @Override
     public void delete(@Nonnull String queueName, @Nonnull Message message) {
         Validate.notNull(message, "message is required");
-        fileWorker(queueName).removeFirstLine(new MessageWrapper(message).line());
+        fileWorker(queueName).removeFirstLine(new MessageWrapper(message).toString());
     }
 
     private FileWorker fileWorker(@Nonnull String queueName) {
@@ -79,7 +79,8 @@ public class FileQueueService implements QueueService {
             return this.message.getHandler();
         }
 
-        String line() {
+        @Override
+        public String toString() {
             return String.valueOf(this.lastAccess) + ":" + this.message.getHandler() + ":" + this.message.getBody();
         }
     }
