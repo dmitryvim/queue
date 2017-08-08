@@ -2,29 +2,31 @@ package com.example.file;
 
 import com.example.queue.Message;
 import com.example.queue.QueueService;
-import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
 import java.nio.file.Files;
-import java.nio.file.Path;
+
+import static org.junit.Assert.assertEquals;
 
 public class FileQueueTest {
-    //
-    // Implement me if you have time.
-    //
-
-    private QueueService queueService;
-
-    @Before
-    public void initQueue() throws Exception {
-        Path tempDirectory = Files.createTempDirectory("file-queue-test");
-
-        this.queueService = new FileQueueService(tempDirectory.toFile());
-    }
 
     @Test
-    public void queueTest() {
-        //TODO load test
+    public void doubleQueueTest() throws Exception {
+
+        //given
+        String queue = "queue";
+        File tempDirectory = Files.createTempDirectory("file-queue-test").toFile();
+        QueueService queueService1 = new FileQueueService(tempDirectory);
+        QueueService queueService2 = new FileQueueService(tempDirectory);
+        Message pushed = message("message");
+
+        //when
+        queueService1.push(queue, pushed);
+        Message pulled = queueService2.pull(queue);
+
+        //then
+        assertEquals(pushed, pulled);
     }
 
     private Message message(String text) {
