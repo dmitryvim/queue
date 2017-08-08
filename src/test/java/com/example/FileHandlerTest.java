@@ -1,4 +1,4 @@
-package com.example.file;
+package com.example;
 
 import org.junit.After;
 import org.junit.Before;

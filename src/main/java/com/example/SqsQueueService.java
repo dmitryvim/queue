@@ -1,12 +1,10 @@
-package com.example.amazon;
+package com.example;
 
 import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.amazonaws.services.sqs.model.CreateQueueResult;
 import com.amazonaws.services.sqs.model.GetQueueUrlResult;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
-import com.example.queue.Message;
-import com.example.queue.QueueService;
 import org.apache.commons.lang.Validate;
 
 import javax.annotation.CheckForNull;

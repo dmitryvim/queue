@@ -1,4 +1,4 @@
-package com.example.queue;
+package com.example;
 
 import javax.annotation.Nonnull;
 import java.util.UUID;

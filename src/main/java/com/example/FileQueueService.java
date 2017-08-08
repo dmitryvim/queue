@@ -1,7 +1,5 @@
-package com.example.file;
+package com.example;
 
-import com.example.queue.Message;
-import com.example.queue.QueueService;
 import org.apache.commons.lang.Validate;
 
 import javax.annotation.CheckForNull;

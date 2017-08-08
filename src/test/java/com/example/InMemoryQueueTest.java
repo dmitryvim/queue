@@ -1,7 +1,5 @@
-package com.example.inmemory;
+package com.example;
 
-import com.example.queue.Message;
-import com.example.queue.QueueService;
 import org.junit.Before;
 import org.junit.Test;
 

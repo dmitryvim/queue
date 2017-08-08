@@ -1,7 +1,5 @@
-package com.example.file;
+package com.example;
 
-import com.example.queue.Message;
-import com.example.queue.QueueService;
 import org.junit.Test;
 
 import java.io.File;
@@ -19,7 +17,7 @@ public class FileQueueTest {
         File tempDirectory = Files.createTempDirectory("file-queue-test").toFile();
         QueueService queueService1 = new FileQueueService(tempDirectory);
         QueueService queueService2 = new FileQueueService(tempDirectory);
-        Message pushed = message("message");
+        Message pushed = new Message("message");
 
         //when
         queueService1.push(queue, pushed);
@@ -27,9 +25,5 @@ public class FileQueueTest {
 
         //then
         assertEquals(pushed, pulled);
-    }
-
-    private Message message(String text) {
-        return new Message(text);
     }
 }

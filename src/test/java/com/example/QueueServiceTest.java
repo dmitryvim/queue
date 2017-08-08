@@ -1,7 +1,5 @@
-package com.example.queue;
+package com.example;
 
-import com.example.file.FileQueueService;
-import com.example.inmemory.InMemoryQueueService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
