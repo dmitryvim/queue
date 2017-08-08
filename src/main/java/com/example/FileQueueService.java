@@ -5,17 +5,12 @@ import org.apache.commons.lang.Validate;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.time.Instant;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.function.Consumer;
 
 public class FileQueueService implements QueueService {
 
-    /**
-     * timeout the file invisible for repeated pulling
-     */
-    private final static int INVISIBLE_FOR_READ_TIMEOUT = 1000;
     /**
      * directory for queue file storage
      */
@@ -77,48 +72,4 @@ public class FileQueueService implements QueueService {
         File file = new File(this.directory + "/" + queueName);
         return new FileHandler(file);
     }
-
-    //TODO extract MessageWrapper is the same for two implementations
-    private static class MessageWrapper {
-
-        private final Message message;
-
-        private long lastAccess = 0;
-
-        MessageWrapper(Message message) {
-            this.message = message;
-        }
-
-        MessageWrapper(String line) {
-            String[] lines = line.split(":", 3);
-            this.lastAccess = Long.valueOf(lines[0]);
-            this.message = new Message(lines[2], lines[1]);
-        }
-
-        Message readMessage() {
-            this.lastAccess = Instant.now().toEpochMilli();
-            return message;
-        }
-
-        boolean readyForAccess() {
-            long now = Instant.now().toEpochMilli();
-            return (this.lastAccess == 0) || (now - this.lastAccess > INVISIBLE_FOR_READ_TIMEOUT);
-        }
-
-        boolean accessed() {
-            return this.lastAccess > 0;
-        }
-
-        String handler() {
-            return this.message.getHandler();
-        }
-
-        @Override
-        public String toString() {
-            return String.valueOf(this.lastAccess) + ":" + this.message.getHandler() + ":" + this.message.getBody();
-        }
-    }
-    //
-  // Task 3: Implement me if you have time.
-  //
 }

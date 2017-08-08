@@ -5,7 +5,6 @@ import org.apache.commons.lang.Validate;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -15,8 +14,6 @@ import java.util.concurrent.BlockingQueue;
 public class InMemoryQueueService implements QueueService {
 
     private final static int QUEUE_SIZE = 1000;
-
-    private final static int INVISIBLE_FOR_READ_TIMEOUT = 1000;
 
     private final Map<String, BlockingQueue<MessageWrapper>> queues = new HashMap<>();
 
@@ -69,36 +66,4 @@ public class InMemoryQueueService implements QueueService {
         }
         return queue;
     }
-
-    private static class MessageWrapper {
-        private final Message message;
-
-        private long lastAccess = 0;
-
-        MessageWrapper(Message message) {
-            this.message = message;
-        }
-
-        Message readMessage() {
-            this.lastAccess = Instant.now().toEpochMilli();
-            return message;
-        }
-
-        boolean readyForAccess() {
-            long now = Instant.now().toEpochMilli();
-            return (this.lastAccess == 0) || (now - this.lastAccess > INVISIBLE_FOR_READ_TIMEOUT);
-        }
-
-        boolean accessed() {
-            return this.lastAccess > 0;
-        }
-
-        String handler() {
-            return this.message.getHandler();
-        }
-    }
-
-    //
-    // Task 2: Implement me.
-    //
 }
