@@ -65,7 +65,6 @@ public class InMemoryQueueTest {
                 if (message != null) {
                     pulled.add(message);
                     this.queueService.delete(queue, message);
-                    System.out.println(message.getBody());
                 }
             }
         };

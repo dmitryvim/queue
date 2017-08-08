@@ -21,7 +21,7 @@ class MessageWrapper {
     }
 
     MessageWrapper(String line) {
-        String[] lines = line.split(":", 3);
+        String[] lines = line.trim().split(":", 3);
         this.lastAccess = Long.valueOf(lines[0]);
         this.message = new Message(lines[2], lines[1]);
     }
