@@ -22,8 +22,6 @@ public class SqsQueueService implements QueueService {
     // terms of how well they map to the implementation intended for a production environment.
     //
 
-    private static final String HANDLER_ATTRIBUTE_NAME = "amazon-sqs-handler";
-
     private final AmazonSQSClient amazonSQSClient;
 
     public SqsQueueService(@Nonnull AmazonSQSClient sqsClient) {
@@ -35,7 +33,7 @@ public class SqsQueueService implements QueueService {
     public void push(@Nonnull String queueName, @Nonnull Message message) {
         Validate.notNull(message, "message is required");
         String url = queueUrl(queueName);
-        this.amazonSQSClient.sendMessage(url, message.line());
+        this.amazonSQSClient.sendMessage(url, message.getBody());
     }
 
     @CheckForNull
@@ -50,8 +48,7 @@ public class SqsQueueService implements QueueService {
             return null;
         } else {
             com.amazonaws.services.sqs.model.Message message = messages.get(0);
-            return Message.of(message.getBody())
-                    .withAttribute(HANDLER_ATTRIBUTE_NAME, message.getReceiptHandle());
+            return new Message(message.getBody(), message.getReceiptHandle());
         }
     }
 
@@ -59,7 +56,7 @@ public class SqsQueueService implements QueueService {
     public void delete(@Nonnull String queueName, @Nonnull Message message) {
         //TODO add message handler
         String queueUrl = queueUrl(queueName);
-        this.amazonSQSClient.deleteMessage(queueUrl, message.getAttribute(HANDLER_ATTRIBUTE_NAME));
+        this.amazonSQSClient.deleteMessage(queueUrl, message.getHandler());
     }
 
     private String queueUrl(@Nonnull String queueName) {
