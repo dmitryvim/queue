@@ -7,17 +7,11 @@ import org.junit.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 public class FileQueueTest {
     //
     // Implement me if you have time.
     //
-    private static String QUEUE_NAME = "test-queue";
 
     private QueueService queueService;
 
@@ -30,62 +24,7 @@ public class FileQueueTest {
 
     @Test
     public void queueTest() {
-        // given
-        List<Message> messages = Arrays.asList(message("first"), message("second"), message("third"));
-
-        // when
-        this.queueService.push(QUEUE_NAME, messages.get(0));
-        this.queueService.push(QUEUE_NAME, messages.get(1));
-
-        // then
-        pullDeleteAndAssertMessage(QUEUE_NAME, messages.get(0));
-
-        // when
-        this.queueService.push(QUEUE_NAME, messages.get(2));
-
-        // then
-        pullDeleteAndAssertMessage(QUEUE_NAME, messages.get(1));
-        pullDeleteAndAssertMessage(QUEUE_NAME, messages.get(2));
-    }
-
-    @Test
-    public void shouldReturnTheSameMessageOnRepeatedPull() {
-        // given
-        Arrays.asList(message("first"), message("second")).forEach(message -> this.queueService.push(QUEUE_NAME, message));
-
-        // expect
-        Message firstMessage1 = this.queueService.pull(QUEUE_NAME);
-        Message firstMessage2 = this.queueService.pull(QUEUE_NAME);
-        assertEquals(firstMessage1, firstMessage2);
-    }
-
-    @Test
-    public void shouldReturnNullOnEmptyQueue() {
-        assertNull(this.queueService.pull(QUEUE_NAME));
-    }
-
-    @Test
-    public void shouldReturnQueueSpecificMessages() {
-
-        // given
-        String secondQueue = "test-2-queue";
-        List<Message> messages = Arrays.asList(message("first"), message("second"));
-
-        // when
-        this.queueService.push(QUEUE_NAME, messages.get(0));
-        this.queueService.push(secondQueue, messages.get(1));
-
-        // then
-        Message firstQueueMessage = this.queueService.pull(QUEUE_NAME);
-        Message secondQueueMessage = this.queueService.pull(secondQueue);
-        assertEquals(messages.get(0), firstQueueMessage);
-        assertEquals(messages.get(1), secondQueueMessage);
-    }
-
-    private void pullDeleteAndAssertMessage(String queue, Message expected) {
-        Message message = this.queueService.pull(QUEUE_NAME);
-        assertEquals(expected, message);
-        this.queueService.delete(QUEUE_NAME, message);
+        //TODO load test
     }
 
     private Message message(String text) {
