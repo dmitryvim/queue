@@ -104,7 +104,7 @@ public class InMemoryQueueService implements QueueService {
 
         boolean readyForAccess() {
             long now = Instant.now().toEpochMilli();
-            return (this.lastAccess == 0) || (now - this.lastAccess < INVISIBLE_FOR_READ_TIMEOUT);
+            return (this.lastAccess == 0) || (now - this.lastAccess > INVISIBLE_FOR_READ_TIMEOUT);
         }
 
         boolean accessed() {
