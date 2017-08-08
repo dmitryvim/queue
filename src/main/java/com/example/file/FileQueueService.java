@@ -5,8 +5,16 @@ import com.example.queue.QueueService;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import java.io.File;
 
 public class FileQueueService implements QueueService {
+
+    private final File directory;
+
+    public FileQueueService(File directory) {
+        this.directory = directory;
+    }
+
     @Override
     public void push(@Nonnull String queueName, @Nonnull Message message) {
 
@@ -23,15 +31,6 @@ public class FileQueueService implements QueueService {
 
     }
 
-    @Override
-    public void createQueue(@Nonnull String name) {
-
-    }
-
-    @Override
-    public void deleteQueue(@Nonnull String name) {
-
-    }
     //
   // Task 3: Implement me if you have time.
   //

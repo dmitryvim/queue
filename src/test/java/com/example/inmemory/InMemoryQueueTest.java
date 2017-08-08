@@ -22,7 +22,6 @@ public class InMemoryQueueTest {
     @Before
     public void initQueue() {
         this.queueService = new InMemoryQueueService();
-        this.queueService.createQueue(QUEUE_NAME);
     }
 
     @Test
@@ -67,7 +66,6 @@ public class InMemoryQueueTest {
         // given
         String secondQueue = "test-2-queue";
         List<Message> messages = Arrays.asList(message("first"), message("second"));
-        this.queueService.createQueue(secondQueue);
 
         // when
         this.queueService.push(QUEUE_NAME, messages.get(0));

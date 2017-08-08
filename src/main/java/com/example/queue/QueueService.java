@@ -28,10 +28,6 @@ public interface QueueService {
 
     void delete(@Nonnull String queueName, @Nonnull Message message);
 
-    void createQueue(@Nonnull String name);
-
-    void deleteQueue(@Nonnull String name);
-
     /*
     //TODO //FIXME
 

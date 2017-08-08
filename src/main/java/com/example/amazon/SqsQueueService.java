@@ -35,13 +35,4 @@ public class SqsQueueService implements QueueService {
 
   }
 
-  @Override
-  public void createQueue(@Nonnull String name) {
-
-  }
-
-  @Override
-  public void deleteQueue(@Nonnull String name) {
-
-  }
 }

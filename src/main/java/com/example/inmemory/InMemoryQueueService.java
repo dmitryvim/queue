@@ -3,12 +3,12 @@ package com.example.inmemory;
 import com.example.queue.Message;
 import com.example.queue.QueueService;
 import com.google.common.base.Throwables;
+import org.apache.commons.lang.Validate;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -20,6 +20,8 @@ public class InMemoryQueueService implements QueueService {
     private final Map<String, BlockingQueue<Message>> queues = new HashMap<>();
 
     private final Object deleteMutex = new Object();
+
+    private final Object createQueueMutex = new Object();
 
     @Override
     public void push(@Nonnull String queueName, @Nonnull Message message) {
@@ -53,28 +55,18 @@ public class InMemoryQueueService implements QueueService {
         }
     }
 
-    @Override
-    public void createQueue(@Nonnull String name) {
-        this.queues.put(name, new ArrayBlockingQueue<>(QUEUE_SIZE));
-    }
-
-    @Override
-    public void deleteQueue(@Nonnull String name) {
-        BlockingQueue<Message> queue = this.queues.get(name);
-        if (queue != null) {
-            //TODO проблемы с многопоточностью
-            if (queue.isEmpty()) {
-                this.queues.remove(name);
-            } else {
-                throw new IllegalStateException("Unable to delete queue while it is not empty.");
+    private BlockingQueue<Message> queue(@Nonnull String queueName) {
+        Validate.notNull(queueName, "queueName is required");
+        BlockingQueue<Message> queue = this.queues.get(queueName);
+        if (queue == null) {
+            synchronized (this.createQueueMutex) {
+                if (queue == null) {
+                    queue = new ArrayBlockingQueue<>(QUEUE_SIZE);
+                    this.queues.put(queueName, queue);
+                }
             }
         }
-    }
-
-    private BlockingQueue<Message> queue(@Nonnull String queueName) {
-        return Optional.of(queueName)
-                .map(this.queues::get)
-                .orElseThrow(() -> new IllegalArgumentException("Unable to find queue with name " + queueName + "."));
+        return queue;
     }
     //
     // Task 2: Implement me.
