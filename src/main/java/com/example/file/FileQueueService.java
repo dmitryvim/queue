@@ -8,6 +8,9 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.time.Instant;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.function.Consumer;
 
 public class FileQueueService implements QueueService {
 
@@ -23,26 +26,51 @@ public class FileQueueService implements QueueService {
     public void push(@Nonnull String queueName, @Nonnull Message message) {
         Validate.notNull(message, "message is required");
         MessageWrapper wrapper = new MessageWrapper(message);
-        fileWorker(queueName).writeLine(wrapper.toString());
+        fileHandler(queueName).writeLine(wrapper.toString());
+    }
+
+    private List<String> pullTransform(List<String> lines, Consumer<Message> consumer) {
+        Message message = null;
+        ListIterator<String> iterator = lines.listIterator();
+        while (iterator.hasNext() && message == null) {
+            MessageWrapper wrapper = new MessageWrapper(iterator.next());
+            if (wrapper.readyForAccess()) {
+                message = wrapper.readMessage();
+                iterator.set(wrapper.toString());
+            }
+        }
+        if (message != null) {
+            consumer.accept(message);
+        }
+        return lines;
     }
 
     @CheckForNull
     @Override
     public Message pull(@Nonnull String queueName) {
-        String line = fileWorker(queueName).readFirstLine();
-        return line == null ? null : new MessageWrapper(line).readMessage();
+        Message[] messages = new Message[1];
+        fileHandler(queueName).transform(lines -> pullTransform(lines, message -> messages[0] = message));
+        return messages[0];
+    }
+
+    private boolean predicate(String line, Message message) {
+        MessageWrapper wrapper = new MessageWrapper(line);
+        return wrapper.accessed() && wrapper.handler().equals(message.getHandler());
     }
 
     @Override
     public void delete(@Nonnull String queueName, @Nonnull Message message) {
         Validate.notNull(message, "message is required");
-        fileWorker(queueName).removeFirstLine(new MessageWrapper(message).toString());
+        fileHandler(queueName).transform(lines -> {
+            lines.removeIf(line -> predicate(line, message));
+            return lines;
+        });
     }
 
-    private FileWorker fileWorker(@Nonnull String queueName) {
+    private FileHandler fileHandler(@Nonnull String queueName) {
         Validate.notNull(queueName, "queueName is required");
         File file = new File(this.directory + "/" + queueName);
-        return new FileWorker(file);
+        return new FileHandler(file);
     }
 
     private static class MessageWrapper {
@@ -68,7 +96,7 @@ public class FileQueueService implements QueueService {
 
         boolean readyForAccess() {
             long now = Instant.now().toEpochMilli();
-            return (this.lastAccess == 0) || (now - this.lastAccess < INVISIBLE_FOR_READ_TIMEOUT);
+            return (this.lastAccess == 0) || (now - this.lastAccess > INVISIBLE_FOR_READ_TIMEOUT);
         }
 
         boolean accessed() {
