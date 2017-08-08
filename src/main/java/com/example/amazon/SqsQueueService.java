@@ -13,14 +13,12 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.util.List;
 
+/**
+ * QueueService implementation working with Amazon queue provider
+ */
 public class SqsQueueService implements QueueService {
-    //
-    // Task 4: Optionally implement parts of me.
-    //
-    // This file is a placeholder for an AWS-backed implementation of QueueService.  It is included
-    // primarily so you can quickly assess your choices for method signatures in QueueService in
-    // terms of how well they map to the implementation intended for a production environment.
-    //
+
+    private static final int VISIBILITY_TIMEOUT = 1000;
 
     private final AmazonSQSClient amazonSQSClient;
 
@@ -41,6 +39,7 @@ public class SqsQueueService implements QueueService {
     public Message pull(@Nonnull String queueName) {
         ReceiveMessageRequest request = new ReceiveMessageRequest()
                 .withQueueUrl(queueUrl(queueName))
+                .withVisibilityTimeout(VISIBILITY_TIMEOUT)
                 .withMaxNumberOfMessages(1);
         ReceiveMessageResult messageResult = this.amazonSQSClient.receiveMessage(request);
         List<com.amazonaws.services.sqs.model.Message> messages = messageResult.getMessages();
@@ -54,7 +53,6 @@ public class SqsQueueService implements QueueService {
 
     @Override
     public void delete(@Nonnull String queueName, @Nonnull Message message) {
-        //TODO add message handler
         String queueUrl = queueUrl(queueName);
         this.amazonSQSClient.deleteMessage(queueUrl, message.getHandler());
     }

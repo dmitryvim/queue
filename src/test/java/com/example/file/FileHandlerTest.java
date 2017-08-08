@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 import static org.junit.Assert.assertEquals;
 
 /**
- * @author dmitry.mikhaylovich@bostongene.com
+ * @author dmitry.mikhailovich@gmail.com
  */
 public class FileHandlerTest {
 

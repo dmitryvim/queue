@@ -4,12 +4,18 @@ import javax.annotation.Nonnull;
 import java.util.UUID;
 
 /**
- * TODO write documentation
+ * queue based message
  */
 public class Message {
 
+    /**
+     * message content
+     */
     private final String body;
 
+    /**
+     * the uniq message parameter, to verify the message is requested to be deleted
+     */
     private final String handler;
 
     public Message(@Nonnull String body, @Nonnull String handler) {
@@ -21,21 +27,12 @@ public class Message {
         this(body, UUID.randomUUID().toString());
     }
 
-
     public String getHandler() {
         return handler;
     }
 
     public String getBody() {
         return body;
-    }
-
-    @Override
-    public String toString() {
-        return "Message{" +
-                "body='" + body + '\'' +
-                ", handler='" + handler + '\'' +
-                '}';
     }
 
     @Override

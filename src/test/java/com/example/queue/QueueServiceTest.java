@@ -17,7 +17,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 /**
- * @author dmitry.mikhaylovich@bostongene.com
+ * @author dmitry.mikhailovich@gmail.com
  */
 @RunWith(Parameterized.class)
 public class QueueServiceTest {
@@ -31,14 +31,14 @@ public class QueueServiceTest {
         return Arrays.asList(new InMemoryQueueService(), new FileQueueService(path.toFile()));
     }
 
-    private static String randomeQueueName() {
+    private static String randomQueueName() {
         return "queue-" + UUID.randomUUID().toString();
     }
 
     @Test
     public void queueTest() {
         // given
-        String queueName = randomeQueueName();
+        String queueName = randomQueueName();
         List<Message> messages = Arrays.asList(message("first"), message("second"), message("third"));
 
         // when
@@ -59,7 +59,7 @@ public class QueueServiceTest {
     @Test
     public void shouldReturnTheSameMessageOnRepeatedPull() throws Exception {
         // given
-        String queueName = randomeQueueName();
+        String queueName = randomQueueName();
         Arrays.asList(message("first"), message("second")).forEach(message -> this.queueService.push(queueName, message));
 
         // expect
@@ -71,15 +71,15 @@ public class QueueServiceTest {
 
     @Test
     public void shouldReturnNullOnEmptyQueue() {
-        assertNull(this.queueService.pull(randomeQueueName()));
+        assertNull(this.queueService.pull(randomQueueName()));
     }
 
     @Test
     public void shouldReturnQueueSpecificMessages() {
 
         // given
-        String firstQueue = randomeQueueName();
-        String secondQueue = randomeQueueName();
+        String firstQueue = randomQueueName();
+        String secondQueue = randomQueueName();
         List<Message> messages = Arrays.asList(message("first"), message("second"));
 
         // when

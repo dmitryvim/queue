@@ -16,20 +16,17 @@ import java.util.concurrent.BlockingQueue;
 
 public class InMemoryQueueService implements QueueService {
 
-    //TODO определиться с размерами очереди
-    private final static int QUEUE_SIZE = 10;
+    private final static int QUEUE_SIZE = 1000;
 
     private final static int INVISIBLE_FOR_READ_TIMEOUT = 1000;
 
-    private final Map<String, ArrayBlockingQueue<MessageWrapper>> queues = new HashMap<>();
-
-    private final Object deleteMutex = new Object();
+    private final Map<String, BlockingQueue<MessageWrapper>> queues = new HashMap<>();
 
     private final Object createQueueMutex = new Object();
 
     @Override
     public void push(@Nonnull String queueName, @Nonnull Message message) {
-        //TODO check null
+        Validate.notNull(message, "message is required");
         try {
             queue(queueName).put(new MessageWrapper(message));
         } catch (InterruptedException e) {
@@ -40,7 +37,6 @@ public class InMemoryQueueService implements QueueService {
     @CheckForNull
     @Override
     public Message pull(@Nonnull String queueName) {
-
         BlockingQueue<MessageWrapper> queue = queue(queueName);
         return queue.stream()
                 .filter(MessageWrapper::readyForAccess)
@@ -50,10 +46,9 @@ public class InMemoryQueueService implements QueueService {
     }
 
     @Override
-    //TODO
     public void delete(@Nonnull String queueName, @Nonnull Message message) {
         Validate.notNull(message, "message is required");
-        ArrayBlockingQueue<MessageWrapper> queue = queue(queueName);
+        BlockingQueue<MessageWrapper> queue = queue(queueName);
         Iterator<MessageWrapper> iterator = queue.iterator();
         MessageWrapper next;
         while (iterator.hasNext() && (next = iterator.next()).accessed()) {
@@ -61,22 +56,11 @@ public class InMemoryQueueService implements QueueService {
                 iterator.remove();
             }
         }
-//        if (queue.peek().getHandler().equals(message.getHandler())) {
-//            synchronized (this.deleteMutex) {
-//                if (queue.peek() == message) {
-//                    try {
-//                        queue.take();
-//                    } catch (InterruptedException e) {
-//                        Throwables.propagate(e);
-//                    }
-//                }
-//            }
-//        }
     }
 
-    private ArrayBlockingQueue<MessageWrapper> queue(@Nonnull String queueName) {
+    private BlockingQueue<MessageWrapper> queue(@Nonnull String queueName) {
         Validate.notNull(queueName, "queueName is required");
-        ArrayBlockingQueue<MessageWrapper> queue = this.queues.get(queueName);
+        BlockingQueue<MessageWrapper> queue = this.queues.get(queueName);
         if (queue == null) {
             synchronized (this.createQueueMutex) {
                 if (queue == null) {

@@ -14,9 +14,14 @@ import java.util.function.Consumer;
 
 public class FileQueueService implements QueueService {
 
-    private final File directory;
-
+    /**
+     * timeout the file invisible for repeated pulling
+     */
     private final static int INVISIBLE_FOR_READ_TIMEOUT = 1000;
+    /**
+     * directory for queue file storage
+     */
+    private final File directory;
 
     public FileQueueService(File directory) {
         this.directory = directory;
@@ -29,6 +34,7 @@ public class FileQueueService implements QueueService {
         fileHandler(queueName).writeLine(wrapper.toString());
     }
 
+    //TODO implement string length constant message.toString() to change only one file line
     private List<String> pullTransform(List<String> lines, Consumer<Message> consumer) {
         Message message = null;
         ListIterator<String> iterator = lines.listIterator();
@@ -53,6 +59,7 @@ public class FileQueueService implements QueueService {
         return messages[0];
     }
 
+    //TODO implement remove line with predicate in FileHandler
     private boolean predicate(String line, Message message) {
         MessageWrapper wrapper = new MessageWrapper(line);
         return wrapper.accessed() && wrapper.handler().equals(message.getHandler());
@@ -73,6 +80,7 @@ public class FileQueueService implements QueueService {
         return new FileHandler(file);
     }
 
+    //TODO extract MessageWrapper is the same for two implementations
     private static class MessageWrapper {
 
         private final Message message;

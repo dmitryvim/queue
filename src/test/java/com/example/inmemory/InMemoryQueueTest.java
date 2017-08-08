@@ -9,6 +9,10 @@ import java.util.stream.Stream;
 
 import static org.junit.Assert.assertEquals;
 
+/**
+ * the big part of tests for FileQueueService and InmemoryQueueService are the same,
+ * so I've moved them to QueueServiceTest
+ */
 public class InMemoryQueueTest {
     //
     // Implement me.
@@ -39,4 +43,6 @@ public class InMemoryQueueTest {
         assertEquals("first", first.getBody());
         assertEquals("second", second.getBody());
     }
+
+    //TODO add multi tread test
 }

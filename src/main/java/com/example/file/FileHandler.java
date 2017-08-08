@@ -10,23 +10,40 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @author dmitry.mikhaylovich@bostongene.com
+ * The FileHandler works with file (used for queue storage) implementing file multi process lock
+ * and functions specialized for FileQueueService
+ *
+ * @author dmitry.mikhailovich@gmail.com
  */
-public class FileHandler {
+class FileHandler {
 
     private final static String LINE_SEPARATOR = System.getProperty("line.separator");
 
+    /**
+     * if file is locked,
+     * ACCESS_FILE_RETRY_COUNT is the count of retries to get access to file
+     */
     private final static int ACCESS_FILE_RETRY_COUNT = 10;
 
+    /**
+     * if file is locked,
+     * ACCESS_FILE_TIMEOUT is the period between retries to get access to queue file
+     */
     private final static int ACCESS_FILE_TIMEOUT = 100;
 
+    /**
+     * file working with
+     */
     private final File file;
 
-    public FileHandler(File file) {
+    FileHandler(File file) {
         this.file = file;
     }
 
-    public void writeLine(String line) {
+    /**
+     * add line to the end of file
+     */
+    void writeLine(String line) {
         runWorkerOnRandomAccessFile(randomAccessFile -> {
             long size = randomAccessFile.length();
             randomAccessFile.seek(size);
@@ -34,7 +51,10 @@ public class FileHandler {
         });
     }
 
-    public void transform(LinesTransformer transformer) {
+    /**
+     * transform file lines with @param transformer
+     */
+    void transform(LinesTransformer transformer) {
         runWorkerOnRandomAccessFile(randomAccessFile -> {
             String line;
             List<String> lines = new ArrayList<>();
@@ -58,6 +78,9 @@ public class FileHandler {
         runWorkerOnRandomAccessFile(worker, ACCESS_FILE_RETRY_COUNT, ACCESS_FILE_TIMEOUT);
     }
 
+    /**
+     * runWorkerOnRandomAccessFile implements functionality of file locks using actions from provided worker
+     */
     private void runWorkerOnRandomAccessFile(RandomAccessFileWorker worker, int retryCount, int timeout) {
         try (RandomAccessFile randomAccessFile = new RandomAccessFile(this.file, "rw")) {
             FileChannel channel = randomAccessFile.getChannel();
@@ -86,6 +109,9 @@ public class FileHandler {
         }
     }
 
+    /**
+     * Functional interface to read/write file via RandomAccessFile
+     */
     @FunctionalInterface
     private interface RandomAccessFileWorker {
         void work(RandomAccessFile file) throws IOException;
