@@ -73,7 +73,7 @@ public class FileHandlerTest {
     }
 
     @Test
-    public void shouldRemoveNotThirdLine() throws Exception {
+    public void shouldNotRemoveThirdLine() throws Exception {
         // when
         this.fileHandler.removeLineWithPredicate("third"::equals, line -> !"second".equals(line));
 

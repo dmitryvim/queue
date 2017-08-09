@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
@@ -23,13 +22,13 @@ class FileHandler {
      * if file is locked,
      * ACCESS_FILE_RETRY_COUNT is the count of retries to get access to file
      */
-    private final static int ACCESS_FILE_RETRY_COUNT = 10;
+    private final static int ACCESS_FILE_RETRY_COUNT = 100;
 
     /**
      * if file is locked,
-     * ACCESS_FILE_TIMEOUT is the period between retries to get access to queue file
+     * ACCESS_FILE_TIMEOUT_IN_MS is the period between retries to get access to queue file
      */
-    private final static int ACCESS_FILE_TIMEOUT = 100;
+    private final static int ACCESS_FILE_TIMEOUT_IN_MS = 100;
 
     private final static int BYTE_BUFFER_SIZE = 255;
 
@@ -104,7 +103,7 @@ class FileHandler {
     }
 
     private void runWorkerOnRandomAccessFile(RandomAccessFileWorker worker) {
-        runWorkerOnRandomAccessFile(worker, ACCESS_FILE_RETRY_COUNT, ACCESS_FILE_TIMEOUT);
+        runWorkerOnRandomAccessFile(worker, ACCESS_FILE_RETRY_COUNT, ACCESS_FILE_TIMEOUT_IN_MS);
     }
 
     /**
@@ -134,7 +133,7 @@ class FileHandler {
             throw new IllegalStateException("Unable to work with file.", e);
         } catch (InterruptedException e) {
             // really, here I need more complicated mechanism, but not for test task
-            throw new IllegalStateException("Interrupted exception occurred", e);
+            throw new RuntimeException("Interrupted exception occurred", e);
         }
     }
 
@@ -144,11 +143,6 @@ class FileHandler {
     @FunctionalInterface
     private interface RandomAccessFileWorker {
         void work(RandomAccessFile file) throws IOException;
-    }
-
-    @FunctionalInterface
-    interface LinesTransformer {
-        List<String> transform(List<String> lines);
     }
 
     @FunctionalInterface

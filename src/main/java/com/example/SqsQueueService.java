@@ -16,7 +16,7 @@ import java.util.List;
  */
 public class SqsQueueService implements QueueService {
 
-    private static final int VISIBILITY_TIMEOUT = 1000;
+    private static final int VISIBILITY_TIMEOUT_IN_MS = 1000;
 
     private final AmazonSQSClient amazonSQSClient;
 
@@ -37,7 +37,7 @@ public class SqsQueueService implements QueueService {
     public Message pull(@Nonnull String queueName) {
         ReceiveMessageRequest request = new ReceiveMessageRequest()
                 .withQueueUrl(queueUrl(queueName))
-                .withVisibilityTimeout(VISIBILITY_TIMEOUT)
+                .withVisibilityTimeout(VISIBILITY_TIMEOUT_IN_MS)
                 .withMaxNumberOfMessages(1);
         ReceiveMessageResult messageResult = this.amazonSQSClient.receiveMessage(request);
         List<com.amazonaws.services.sqs.model.Message> messages = messageResult.getMessages();

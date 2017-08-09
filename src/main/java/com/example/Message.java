@@ -1,5 +1,7 @@
 package com.example;
 
+import org.apache.commons.lang.Validate;
+
 import javax.annotation.Nonnull;
 import java.util.UUID;
 
@@ -19,6 +21,8 @@ public class Message {
     private final String handler;
 
     public Message(@Nonnull String body, @Nonnull String handler) {
+        Validate.notEmpty(body);
+        Validate.notEmpty(handler);
         this.body = body;
         this.handler = handler;
     }

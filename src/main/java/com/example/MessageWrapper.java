@@ -3,14 +3,14 @@ package com.example;
 import java.time.Instant;
 
 /**
- * message wrapper for InMemory- and File- QueueService implemenatations
+ * message wrapper for InMemory- and File- QueueService implementations
  */
 class MessageWrapper {
 
     /**
      * timeout the file invisible for repeated pulling
      */
-    private final static int INVISIBLE_FOR_READ_TIMEOUT = 1000;
+    private final static int INVISIBLE_FOR_READ_TIMEOUT_IN_MS = 1000;
 
     private final Message message;
 
@@ -20,10 +20,18 @@ class MessageWrapper {
         this.message = message;
     }
 
-    MessageWrapper(String line) {
-        String[] lines = line.trim().split(":", 3);
-        this.lastAccess = Long.valueOf(lines[0]);
-        this.message = new Message(lines[2], lines[1]);
+    /**
+     * MessageWrapper can be transformed to representation line and deserialized from it
+     * line format $access_time_in_milliseconds:$handler:$message_text
+     */
+    MessageWrapper(String representation) {
+        String[] lines = representation.trim().split(":", 3);
+        if (lines.length < 3) {
+            throw new IllegalArgumentException("Unable to read representation line.");
+        } else {
+            this.lastAccess = Long.valueOf(lines[0]);
+            this.message = new Message(lines[2], lines[1]);
+        }
     }
 
     Message readMessage() {
@@ -33,7 +41,7 @@ class MessageWrapper {
 
     boolean readyForAccess() {
         long now = Instant.now().toEpochMilli();
-        return (this.lastAccess == 0) || (now - this.lastAccess > INVISIBLE_FOR_READ_TIMEOUT);
+        return (this.lastAccess == 0) || (now - this.lastAccess > INVISIBLE_FOR_READ_TIMEOUT_IN_MS);
     }
 
     boolean accessed() {
@@ -44,8 +52,7 @@ class MessageWrapper {
         return this.message.getHandler();
     }
 
-    @Override
-    public String toString() {
+    public String representation() {
         // 13 is current digit count of Instant.now().toEpochMilli();
         return String.format("%15d:%s:%s", this.lastAccess, this.message.getHandler(), this.message.getBody());
     }

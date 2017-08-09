@@ -22,29 +22,34 @@ public class FileQueueService implements QueueService {
     public void push(@Nonnull String queueName, @Nonnull Message message) {
         Validate.notNull(message, "message is required");
         MessageWrapper wrapper = new MessageWrapper(message);
-        fileHandler(queueName).writeLine(wrapper.toString());
+        fileHandler(queueName, true).writeLine(wrapper.representation());
     }
 
     private String pullTransformer(String line, Consumer<Message> consumer) {
         MessageWrapper wrapper = new MessageWrapper(line);
         if (wrapper.readyForAccess()) {
             consumer.accept(wrapper.readMessage());
-            return wrapper.toString();
+            return wrapper.representation();
         } else {
             return null;
         }
-    }
-
-    private boolean unreadMessage(String line) {
-        return new MessageWrapper(line).accessed();
     }
 
     @CheckForNull
     @Override
     public Message pull(@Nonnull String queueName) {
         Message[] messages = new Message[1];
-        fileHandler(queueName).replaceLineWith(line -> pullTransformer(line, message -> messages[0] = message));
-        return messages[0];
+        FileHandler fileHandler = fileHandler(queueName, false);
+        if (fileHandler == null) {
+            return null;
+        } else {
+            fileHandler.replaceLineWith(line -> pullTransformer(line, message -> messages[0] = message));
+            return messages[0];
+        }
+    }
+
+    private boolean accessedMessage(String line) {
+        return new MessageWrapper(line).accessed();
     }
 
     private boolean removePredicate(String line, Message message) {
@@ -55,12 +60,19 @@ public class FileQueueService implements QueueService {
     @Override
     public void delete(@Nonnull String queueName, @Nonnull Message message) {
         Validate.notNull(message, "message is required");
-        fileHandler(queueName).removeLineWithPredicate(line -> removePredicate(line, message), this::unreadMessage);
+        FileHandler fileHandler = fileHandler(queueName, false);
+        if (fileHandler != null) {
+            fileHandler.removeLineWithPredicate(line -> removePredicate(line, message), this::accessedMessage);
+        }
     }
 
-    private FileHandler fileHandler(@Nonnull String queueName) {
+    private FileHandler fileHandler(@Nonnull String queueName, boolean shouldCreateFile) {
         Validate.notNull(queueName, "queueName is required");
         File file = new File(this.directory + "/" + queueName);
-        return new FileHandler(file);
+        if (file.exists() || shouldCreateFile) {
+            return new FileHandler(file);
+        } else {
+            return null;
+        }
     }
 }
