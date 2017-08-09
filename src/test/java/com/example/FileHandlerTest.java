@@ -56,6 +56,22 @@ public class FileHandlerTest {
         assertEquals(lines.get(2), "third1");
     }
 
+    @Test
+    public void shouldReplaceSecondLine() throws Exception {
+        // given
+        FileHandler.SameSizeLineTransformer transformer = line -> line.equals("second") ? "dnoces" : null;
+
+        // when
+        this.fileHandler.replaceLineWith(transformer, line -> true);
+
+        // then
+        List<String> lines = fileLines();
+        assertEquals(lines.size(), 3);
+        assertEquals(lines.get(0), "first");
+        assertEquals(lines.get(1), "dnoces");
+        assertEquals(lines.get(2), "third");
+    }
+
     @Before
     public void createTempFile() throws Exception {
         this.file = File.createTempFile("queue_service_file_handler", "test");

@@ -8,6 +8,7 @@ import java.nio.channels.FileLock;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 
 /**
  * The FileHandler works with file (used for queue storage) implementing file multi process lock
@@ -74,6 +75,21 @@ class FileHandler {
         });
     }
 
+    void replaceLineWith(SameSizeLineTransformer transformer, Predicate<String> readingPredicate) {
+        runWorkerOnRandomAccessFile(randomAccessFile -> {
+            String line;
+            String newLine = null;
+            while ((line = randomAccessFile.readLine()) != null && readingPredicate.test(line) && newLine == null) {
+                newLine = transformer.transform(line);
+                if (newLine != null && line.length() == newLine.length()) {
+                    long currentPosition = randomAccessFile.getFilePointer();
+                    randomAccessFile.seek(currentPosition - line.length() - LINE_SEPARATOR.length());
+                    randomAccessFile.writeBytes(newLine);
+                }
+            }
+        });
+    }
+
     private void runWorkerOnRandomAccessFile(RandomAccessFileWorker worker) {
         runWorkerOnRandomAccessFile(worker, ACCESS_FILE_RETRY_COUNT, ACCESS_FILE_TIMEOUT);
     }
@@ -120,5 +136,10 @@ class FileHandler {
     @FunctionalInterface
     interface LinesTransformer {
         List<String> transform(List<String> lines);
+    }
+
+    @FunctionalInterface
+    interface SameSizeLineTransformer {
+        String transform(String line);
     }
 }
