@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
@@ -55,33 +54,14 @@ class FileHandler {
     }
 
     /**
-     * transform file lines with @param transformer
+     * transformer replace only one line, if it returns null then line shouldn't be replace
+     * the modified line should be the same size as initial line
      */
-    void transform(LinesTransformer transformer) {
-        runWorkerOnRandomAccessFile(randomAccessFile -> {
-            String line;
-            List<String> lines = new ArrayList<>();
-            while ((line = randomAccessFile.readLine()) != null) {
-                lines.add(line);
-            }
-            randomAccessFile.seek(0);
-            // really I know about problem, in case rw operation failed we can loose our data
-            transformer.transform(lines).forEach(newLine -> {
-                try {
-                    randomAccessFile.writeBytes(newLine + LINE_SEPARATOR);
-                } catch (IOException e) {
-                    throw new IllegalStateException("Error on rewriting random access file", e);
-                }
-            });
-            randomAccessFile.setLength(randomAccessFile.getFilePointer());
-        });
-    }
-
-    void replaceLineWith(SameSizeLineTransformer transformer, Predicate<String> readingPredicate) {
+    void replaceLineWith(SameSizeLineTransformer transformer) {
         runWorkerOnRandomAccessFile(randomAccessFile -> {
             String line;
             String newLine = null;
-            while ((line = randomAccessFile.readLine()) != null && readingPredicate.test(line) && newLine == null) {
+            while ((line = randomAccessFile.readLine()) != null && newLine == null) {
                 newLine = transformer.transform(line);
                 if (newLine != null && line.length() == newLine.length()) {
                     long currentPosition = randomAccessFile.getFilePointer();
@@ -92,6 +72,10 @@ class FileHandler {
         });
     }
 
+    /**
+     * looks for the first line to remove accept {@param removePredicate} condition until
+     * it delete one line or {@param readingPredicate} condition fail
+     */
     void removeLineWithPredicate(Predicate<String> removePredicate, Predicate<String> readingPredicate) {
         runWorkerOnRandomAccessFile(randomAccessFile -> {
             String line;

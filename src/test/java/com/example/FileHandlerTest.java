@@ -43,18 +43,6 @@ public class FileHandlerTest {
         assertEquals(line, lines.get(lines.size() - 1));
     }
 
-    @Test
-    public void shouldTransformFile() throws Exception {
-        // when
-        this.fileHandler.transform(lines -> lines.stream().map(line -> line + "1").collect(Collectors.toList()));
-
-        // then
-        List<String> lines = fileLines();
-        assertEquals(lines.size(), 3);
-        assertEquals(lines.get(0), "first1");
-        assertEquals(lines.get(1), "second1");
-        assertEquals(lines.get(2), "third1");
-    }
 
     @Test
     public void shouldReplaceSecondLine() throws Exception {
@@ -62,29 +50,13 @@ public class FileHandlerTest {
         FileHandler.SameSizeLineTransformer transformer = line -> line.equals("second") ? "dnoces" : null;
 
         // when
-        this.fileHandler.replaceLineWith(transformer, line -> true);
+        this.fileHandler.replaceLineWith(transformer);
 
         // then
         List<String> lines = fileLines();
         assertEquals(lines.size(), 3);
         assertEquals(lines.get(0), "first");
         assertEquals(lines.get(1), "dnoces");
-        assertEquals(lines.get(2), "third");
-    }
-
-    @Test
-    public void shouldNotReplaceThirdLine() throws Exception {
-        // given
-        FileHandler.SameSizeLineTransformer transformer = line -> line.equals("third") ? "driht" : null;
-
-        // when
-        this.fileHandler.replaceLineWith(transformer, line -> !"second".equals(line));
-
-        // then
-        List<String> lines = fileLines();
-        assertEquals(lines.size(), 3);
-        assertEquals(lines.get(0), "first");
-        assertEquals(lines.get(1), "second");
         assertEquals(lines.get(2), "third");
     }
 
