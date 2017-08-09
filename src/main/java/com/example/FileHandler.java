@@ -32,6 +32,8 @@ class FileHandler {
      */
     private final static int ACCESS_FILE_TIMEOUT = 100;
 
+    private final static int BYTE_BUFFER_SIZE = 255;
+
     /**
      * file working with
      */
@@ -86,6 +88,33 @@ class FileHandler {
                     randomAccessFile.seek(currentPosition - line.length() - LINE_SEPARATOR.length());
                     randomAccessFile.writeBytes(newLine);
                 }
+            }
+        });
+    }
+
+    void removeLineWithPredicate(Predicate<String> removePredicate, Predicate<String> readingPredicate) {
+        runWorkerOnRandomAccessFile(randomAccessFile -> {
+            String line;
+            boolean toRemove = false;
+            while ((line = randomAccessFile.readLine()) != null // check end of file
+                    && readingPredicate.test(line) // check if we should look for line more
+                    && !(toRemove = removePredicate.test(line))) { // check if it is line to be removed
+                // empty
+            }
+
+            if (toRemove) {
+                long writePointer = randomAccessFile.getFilePointer() - line.length() - LINE_SEPARATOR.length();
+                long readPointer = randomAccessFile.getFilePointer();
+                byte buffer[] = new byte[BYTE_BUFFER_SIZE];
+                int read;
+                while ((read = randomAccessFile.read(buffer)) > 0) {
+                    readPointer += read;
+                    randomAccessFile.seek(writePointer);
+                    randomAccessFile.write(buffer, 0, read);
+                    writePointer += read;
+                    randomAccessFile.seek(readPointer);
+                }
+                randomAccessFile.setLength(writePointer);
             }
         });
     }

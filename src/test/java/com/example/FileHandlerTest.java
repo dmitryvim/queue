@@ -78,7 +78,32 @@ public class FileHandlerTest {
         FileHandler.SameSizeLineTransformer transformer = line -> line.equals("third") ? "driht" : null;
 
         // when
-        this.fileHandler.replaceLineWith(transformer, "second"::equals);
+        this.fileHandler.replaceLineWith(transformer, line -> !"second".equals(line));
+
+        // then
+        List<String> lines = fileLines();
+        assertEquals(lines.size(), 3);
+        assertEquals(lines.get(0), "first");
+        assertEquals(lines.get(1), "second");
+        assertEquals(lines.get(2), "third");
+    }
+
+    @Test
+    public void shouldRemoveSecondLine() throws Exception {
+        // when
+        this.fileHandler.removeLineWithPredicate("second"::equals, line -> !"third".equals(line));
+
+        // then
+        List<String> lines = fileLines();
+        assertEquals(lines.size(), 2);
+        assertEquals(lines.get(0), "first");
+        assertEquals(lines.get(1), "third");
+    }
+
+    @Test
+    public void shouldRemoveNotThirdLine() throws Exception {
+        // when
+        this.fileHandler.removeLineWithPredicate("third"::equals, line -> !"second".equals(line));
 
         // then
         List<String> lines = fileLines();
