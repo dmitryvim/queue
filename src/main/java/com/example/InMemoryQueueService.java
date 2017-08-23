@@ -24,6 +24,7 @@ public class InMemoryQueueService implements QueueService {
         try {
             queue(queueName, true).put(new MessageWrapper(message));
         } catch (InterruptedException e) {
+            //TODO bad practice
             throw new RuntimeException("interrupted", e);
         }
     }
@@ -35,6 +36,8 @@ public class InMemoryQueueService implements QueueService {
         return queue == null ? null : queue.stream()
                 .filter(MessageWrapper::readyForAccess)
                 .findFirst()
+                //TODO race condition in queue(), double-checking is missing a 2nd queues.get(queueName)
+                // need lock message wrapper in readMessage
                 .map(MessageWrapper::readMessage)
                 .orElse(null);
     }
@@ -54,6 +57,7 @@ public class InMemoryQueueService implements QueueService {
         }
     }
 
+    @CheckForNull
     private BlockingQueue<MessageWrapper> queue(@Nonnull String queueName, boolean shouldCreateQueue) {
         Validate.notNull(queueName, "queueName is required");
         BlockingQueue<MessageWrapper> queue = this.queues.get(queueName);

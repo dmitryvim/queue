@@ -22,6 +22,7 @@ public class FileQueueService implements QueueService {
     public void push(@Nonnull String queueName, @Nonnull Message message) {
         Validate.notNull(message, "message is required");
         MessageWrapper wrapper = new MessageWrapper(message);
+        //TODO sanitize message text on line break
         fileHandler(queueName, true).writeLine(wrapper.representation());
     }
 
@@ -66,8 +67,10 @@ public class FileQueueService implements QueueService {
         }
     }
 
+    @CheckForNull
     private FileHandler fileHandler(@Nonnull String queueName, boolean shouldCreateFile) {
         Validate.notNull(queueName, "queueName is required");
+        //TODO path resolve
         File file = new File(this.directory + "/" + queueName);
         if (file.exists() || shouldCreateFile) {
             return new FileHandler(file);

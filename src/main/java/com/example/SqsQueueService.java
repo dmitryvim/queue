@@ -14,6 +14,7 @@ import java.util.List;
 /**
  * QueueService implementation working with Amazon queue provider
  */
+//TODO write test with https://github.com/localstack/localstack
 public class SqsQueueService implements QueueService {
 
     private static final int VISIBILITY_TIMEOUT_IN_MS = 1000;

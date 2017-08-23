@@ -73,6 +73,7 @@ public class InMemoryQueueTest {
         service.submit(reader);
         service.submit(reader);
         pushed.forEach(message -> this.queueService.push(queue, message));
+        //TODO no injected clock, tests require Thread.sleep()
         TimeUnit.SECONDS.sleep(10);
         assertTrue(pulled.containsAll(pushed));
     }

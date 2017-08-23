@@ -5,6 +5,7 @@ import javax.annotation.Nonnull;
 
 public interface QueueService {
 
+    //TODO sanitize queue name
     void push(@Nonnull String queueName, @Nonnull Message message);
 
     @CheckForNull
